@@ -1,0 +1,21 @@
+vcenter_hostname: 10.10.10.20
+vcenter_username: administrator@vsphere.local
+vcenter_password: P@ssuu0rD1
+cluster_name: Development
+vm_name: win_2k-test-ansible-1
+datacenter_name: Datacenter
+conf_size: 50
+conf_type: thin
+conf_datastore: vsanDatastore
+conf_memory: 4096
+conf_num_cpus: 2
+conf_scsi: lsilogicsas
+conf_folder: ""
+conf_networks_name: "VL700-MGMT"
+conf_hotadd_cpu: true
+conf_hotremove_cpu: true
+conf_iommu: true
+conf_nested_virt: true
+conf_guest_id: "windows9_64Guest"
+conf_cdrom_iso_paht_windows: "[vsanDatastore] ISO/Windows10.iso"
+conf_cdrom_iso_paht_autounattend: "[vsanDatastore] ISO/win_unattended.iso"

@@ -1,0 +1,81 @@
+---
+Global:
+  Workingdir: "{{ lookup('env','HOME') }}/ubuntu-autoinstall"     # Temp directory on the Ansible Controller
+  UbuntuISO: ubuntu-20.04.2-live-server-amd64.iso                 # Ubuntu ISO filename
+  UbuntuISO_URL: http://old-releases.ubuntu.com/releases/20.04/   # Ubuntu ISO URL
+  ISODatastore: vsanDatastore                                     # The vSphere Datastore where the Ubuntu ISO will be stored
+  ISODatastoreDir: /ISO                                           # The vSphere Datastore directory where the Ubuntu ISO will be stored. This directory is created if it doesn't exist.
+  ISODatacenter: Datacenter                              # The vSphere Datacenter to which the vSphere ISODatastore belongs
+
+vCenter:
+  FQDN: 10.10.10.20                           # vCenter FQDN
+  User: administrator@vsphere.local              # vCenter Username
+  Password: P@ssuu0rD1                         # vCenter Password
+
+VMsToDeploy:
+  - Name: ubuntusrv-asb088                      # The VM's name
+    Deploy: true                                 # If set to "true" the VM is deployed
+    Placement:
+      Datacenter: Datacenter             # The VM's vCenter Datacenter
+      Cluster: Development                          # The VM's vSphere Cluster 
+      Datastore: vsanDatastore                   # The VM's vSphere datastore
+      Folder: ""                                  # The VM's vCenter VM folder
+    Configuration:
+      VM:
+        GuestID: ubuntu64Guest                   # The VM's Guest OS ID
+        PowerState: poweredon                    # The VM's Power State
+      Storage:
+        DiskSize: 50                             # The VM's disksize in GB
+        DiskType: thin                           # The VM's Disk Type
+        SCSIController: lsilogicsas              # The VM's SCSI Adapter
+      Compute:
+        MemorySize: 4096                         # The VM's memory size in MB
+        CPUs: 2                                  # The VM's number of CPUs
+        Cores: 2                                 # The VM's number of Cores
+      Network:
+        Portgroup: VL100-MGMT                     # The VM's vSphere Portgroup
+        NetworkAdapter: vmxnet3                  # The VM's Network Adapter
+      OS:
+        User: ubuntu                             # Ubuntu OS username
+        Password: VMware1!                       # Ubuntu OS password
+        Hostname: ubuntusrv-asb088                # Ubuntu OS hostname
+        Locale: en_US                            # Ubuntu OS locale
+        Keyboardlayout: en                       # Ubuntu OS keyboard layout
+        Keyboardvariant: us                      # Ubuntu OS keyboard variant
+        IPv4Address: 10.10.10.157/24            # Ubuntu OS IPv4 address
+        IPv4Gateway: 10.10.10.1                  # Ubuntu OS IPv4 gateway
+        IPv4DNS: 8.8.8.8                      # Ubuntu OS DNS server
+        SearchDomain: ""                      # Ubuntu OS DNS search domain
+  - Name: ubuntusrv-asb099                      # The VM's name
+    Deploy: false                                # If set to "true" the VM is deployed
+    Placement:
+      Datacenter: Datacenter             # The VM's vCenter Datacenter
+      Cluster: Development                          # The VM's vSphere Cluster 
+      Datastore: vsanDatastore                   # The VM's vSphere datastore
+      Folder: ""                                  # The VM's vCenter VM folder
+    Configuration:
+      VM:
+        GuestID: ubuntu64Guest                   # The VM's Guest OS ID
+        PowerState: poweredon                    # The VM's Power State
+      Storage:
+        DiskSize: 50                             # The VM's disksize in GB
+        DiskType: thin                           # The VM's Disk Type
+        SCSIController: lsilogicsas              # The VM's SCSI Adapter
+      Compute:
+        MemorySize: 4096                         # The VM's memory size in MB
+        CPUs: 2                                  # The VM's number of CPUs
+        Cores: 2                                 # The VM's number of Cores
+      Network:
+        Portgroup: VL100-MGMT                     # The VM's vSphere Portgroup
+        NetworkAdapter: vmxnet3                  # The VM's Network Adapter
+      OS:
+        User: ubuntu                             # Ubuntu OS username
+        Password: VMware1!                       # Ubuntu OS password
+        Hostname: ubuntusrv-asb099                # Ubuntu OS hostname
+        Locale: en_US                            # Ubuntu OS locale
+        Keyboardlayout: en                       # Ubuntu OS keyboard layout
+        Keyboardvariant: us                      # Ubuntu OS keyboard variant
+        IPv4Address: 10.10.10.158/24            # Ubuntu OS IPv4 address
+        IPv4Gateway: 10.10.10.1                  # Ubuntu OS IPv4 gateway
+        IPv4DNS: 8.8.8.8                      # Ubuntu OS DNS server
+        SearchDomain: ""                   # Ubuntu OS DNS search domain

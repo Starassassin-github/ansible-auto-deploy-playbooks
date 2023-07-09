@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  vars_files:
+    - cfg_win10pro_thin_vars.yml
+  tasks:
+  - name: Create a Windows VM
+    vmware_guest:
+      validate_certs: False
+      hostname: '{{ vcenter_hostname }}'
+      username: '{{ vcenter_username }}'
+      password: '{{ vcenter_password }}'
+      datacenter: "{{ datacenter_name }}"
+      state: poweredon
+      cluster: '{{ cluster_name }}'
+      disk:
+        - size_gb: '{{ conf_size }}'
+          type: '{{ conf_type }}'
+          datastore: '{{ conf_datastore }}'
+      hardware:
+        memory_mb: '{{ conf_memory }}'
+        num_cpus: '{{ conf_num_cpus }}'
+        scsi: '{{ conf_scsi }}'
+        hotadd_cpu: '{{ conf_hotadd_cpu}}'
+        hotremove_cpu: '{{ conf_hotremove_cpu }}'
+        iommu: '{{ conf_iommu }}'
+        nested_virt: '{{ conf_nested_virt }}'
+      name: '{{ vm_name }}'
+      folder: '{{ conf_folder }}'
+      networks:
+      - name: '{{ conf_networks_name }}'
+      guest_id: '{{ conf_guest_id }}'
+      cdrom:
+      - controller_number: 0
+        unit_number: 0
+        state: present
+        type: iso
+        iso_path: '{{ conf_cdrom_iso_paht_windows }}'
+      - controller_number: 0
+        unit_number: 1
+        state: present
+        type: iso
+        iso_path: '{{ conf_cdrom_iso_paht_autounattend }}'

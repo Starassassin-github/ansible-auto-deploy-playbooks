@@ -1,0 +1,168 @@
+---
+- name: Configure vESX
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ../cfg_esxi.vars.yml
+  tasks:
+    - name: Change vESXi hostnames
+      vmware_vm_shell:
+        hostname: '{{ vcenter.vcenter_hostname }}'
+        username: '{{ vcenter.vcenter_username }}'
+        password: '{{ vcenter.vcenter_password }}'
+        datacenter: '{{ vcenter.datacenter_name }}'
+        cluster: '{{ vcenter.cluster_name }}'
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcli
+        vm_shell_args: "system hostname set --fqdn={{ item.key }}"
+        vm_shell_env:
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      async: 7200
+      poll: 0
+      register: hname
+    - name: Result check for configuring hostname
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      with_items: "{{ hname.results }}"
+      retries: 20
+    - name: add standard portgroup to virtual switch
+      vmware_vm_shell:
+        hostname: "{{ vcenter.vcenter_hostname }}"
+        username: "{{ vcenter.vcenter_username }}"
+        password: "{{ vcenter.vcenter_password }}"
+        datacenter: "{{ vcenter.datacenter }}"
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcli
+        vm_shell_args: "network vswitch standard portgroup add --portgroup-name={{ item.value.vm_portgroup_name }} --vswitch-name={{ item.value.vswitch_name }}"
+        vm_shell_env: 
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      async: 7200
+      poll: 0
+      register: hvlan
+    # - name: Set search domain
+    #   vmware_vm_shell:
+    #     hostname: "{{ vcenter.ip }}"
+    #     username: "{{ vcenter.user }}"
+    #     password: "{{ vcenter.password }}"
+    #     datacenter: "{{ vcenter.datacenter }}"
+    #     validate_certs: false
+    #     vm_id: "{{ item.key }}"
+    #     vm_username: "{{ esxi_shell.username }}"
+    #     vm_password: "{{ esxi_shell.password }}"
+    #     vm_shell: /bin/esxcli
+    #     vm_shell_args: "network ip dns search add --domain=liyang.com"
+    #     vm_shell_env: 
+    #     - "PATH=/bin"
+    #     - "VAR=test"
+    #     vm_shell_cwd: "/tmp"
+    #   with_dict: "{{ vESX1 }}"
+    #   async: 7200
+    #   poll: 0
+    #   register: hsd
+    - name: Set a DNS Server
+      vmware_vm_shell:
+        hostname: '{{ vcenter.vcenter_hostname }}'
+        username: '{{ vcenter.vcenter_username }}'
+        password: '{{ vcenter.vcenter_password }}'
+        datacenter: '{{ vcenter.datacenter_name }}'
+        cluster: '{{ vcenter.cluster_name }}'
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcli
+        vm_shell_args: "network ip dns server add --server={{ item.value.pri_dns_server }}"
+        vm_shell_env: 
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      async: 7200
+      poll: 0
+      register: hdns
+    - name: Set name ip addresses
+      vmware_vm_shell:
+        hostname: '{{ vcenter.vcenter_hostname }}'
+        username: '{{ vcenter.vcenter_username }}'
+        password: '{{ vcenter.vcenter_password }}'
+        datacenter: '{{ vcenter.datacenter_name }}'
+        cluster: '{{ vcenter.cluster_name }}'
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcli
+        vm_shell_args: "network ip interface ipv4 set --interface-name=vmk0 --ipv4={{ item.value.ip }} --netmask={{ item.value.mask }} --gateway={{ item.value.gw }} --type=static"
+        # vm_shell_args: "network ip interface ipv4 set --ipv4={{ item.value.ip }} --netmask={{ item.value.mask }} --type=static"
+        vm_shell_env: 
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      register: hip
+    - name: Set default gw
+      vmware_vm_shell:
+        hostname: '{{ vcenter.vcenter_hostname }}'
+        username: '{{ vcenter.vcenter_username }}'
+        password: '{{ vcenter.vcenter_password }}'
+        datacenter: '{{ vcenter.datacenter_name }}'
+        cluster: '{{ vcenter.cluster_name }}'
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcfg-route
+        vm_shell_args: " -a default {{ item.value.gw }}"
+        vm_shell_env: 
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      register: hgw
+    # - name: Disable SSH Warnings
+    #   vmware_vm_shell:
+    #     hostname: "{{ vcenter.ip }}"
+    #     username: "{{ vcenter.user }}"
+    #     password: "{{ vcenter.password }}"
+    #     datacenter: "{{ vcenter.datacenter }}"
+    #     validate_certs: false
+    #     vm_id: "{{ item.key }}"
+    #     vm_username: "{{ esxi_shell.username }}"
+    #     vm_password: "{{ esxi_shell.password }}"
+    #     vm_shell: /bin/vim-cmd
+    #     vm_shell_args: "hostsvc/advopt/update UserVars.SuppressShellWarning long 1"
+    #     vm_shell_env: 
+    #     - "PATH=/bin"
+    #     - "VAR=test"
+    #     vm_shell_cwd: "/tmp"
+    #   with_dict: "{{ vESX1 }}"
+    #   async: 7200
+    #   poll: 0
+    #   register: hwrn
+    # - name: Add ESXi Host to VCSA
+    #   vmware_host:
+    #     hostname: "{{ vcenter.ip }}"
+    #     username: "{{ vcenter.user }}"
+    #     password: "{{ vcenter.password }}"
+    #     datacenter_name: "{{ vcenter.datacenter }}"
+    #     validate_certs: false
+    #     cluster_name: "{{ item.value.cluster }}"
+    #     esxi_hostname: "{{ item.value.ip }}"
+    #     vm_username: "{{ esxi_shell.username }}"
+    #     vm_password: "{{ esxi_shell.password }}"
+    #     state: present
+    #   with_dict: "{{ vESX1 }}"

@@ -1,0 +1,46 @@
+---
+- name: Deploy ESXi VM
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ../cfg_esxi.vars.yml
+  tasks:
+  - name: Create a ESXi VM on VCSA
+    vmware_guest:
+      validate_certs: False
+      hostname: '{{ vcenter.vcenter_hostname }}'
+      username: '{{ vcenter.vcenter_username }}'
+      password: '{{ vcenter.vcenter_password }}'
+      datacenter: '{{ vcenter.datacenter_name }}'
+      state: poweredon
+      cluster: '{{ vcenter.cluster_name }}'
+      name: "{{ item.key }}"
+      guest_id: '{{ vm.conf_guest_id }}'
+      folder: '{{ vm.conf_folder }}'
+      disk:
+      - size_gb: 20
+        type: thin
+        datastore: "{{ vm.conf_datastore }}"
+      - size_gb: 30
+        type: thin
+        datastore: "{{ vm.conf_datastore }}"
+      - size_gb: 50
+        type: thin
+        datastore: "{{ vm.conf_datastore }}"
+      hardware:
+        memory_mb: '{{ vm.conf_memory }}'
+        num_cpus: '{{ vm.conf_num_cpus }}'
+        nested_virt: '{{ vm.conf_nested_virt }}'
+        scsi: '{{ vm.conf_scsi }}'
+        # boot_firmware: '{{ vm.conf_boot_firmware }}'
+        # secure_boot : '{{ vm.conf_secure_boot }}'
+      networks:
+      - name: '{{ vm.conf_networks_name }}'
+        device_type: '{{ vm.conf_networks_type }}'
+      cdrom:
+      - controller_number: 0
+        unit_number: 0
+        state: present
+        type: iso
+        iso_path: '{{ vm.conf_cdrom_iso_paht_autounattend }}'
+    with_dict: "{{ vESX1 }}"

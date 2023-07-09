@@ -1,0 +1,137 @@
+---
+- hosts: localhost
+  name: Basic VCSA Configuration
+  gather_facts: false
+  vars_files: ../answerfile.yml
+
+  tasks:
+    - name: Provide information about vCenter
+      vmware_about_info:
+        hostname: '{{ vcenter.ip }}'
+        validate_certs: no
+        username: '{{ vcenter.user }}'
+        password: '{{ vcenter.password }}'
+      delegate_to: localhost
+      register: vcenter_about_info   
+
+    - name: Create Datacenter
+      vmware_datacenter:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        state: present
+      delegate_to: localhost
+
+    - name: Create Cluster - Management - EDGE
+      vmware_cluster:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        cluster_name: "{{ vcenter.cluster_name }}"
+        enable_ha: True
+        ha_vm_monitoring: vmMonitoringOnly
+        enable_drs: True
+        drs_default_vm_behavior: partiallyAutomated
+      register: cl_result
+      delegate_to: localhost
+
+    - name: Create Cluster - Compute
+      vmware_cluster:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        cluster_name: "{{ vcenter.cluster_name }}"
+        enable_ha: True
+        ha_vm_monitoring: vmMonitoringOnly
+        enable_drs: True
+        drs_default_vm_behavior: partiallyAutomated
+      register: cl_result
+      delegate_to: localhost
+
+    - name: Create Host Folder - EDGE
+      vcenter_folder:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.host_folder_name_edge }}'
+        folder_type: host
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+    - name: Create Host Folder - COMPUTE
+      vcenter_folder:
+        validate_certs: no      
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.host_folder_name_compute }}'
+        folder_type: host
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+    - name: Create VM Folder - INFRASTRUCTURE
+      vcenter_folder:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.vm_folder_name_infrastructure }}'
+        folder_type: vm
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+
+    - name: Create VM Folder - NSX INFRASTRUCTURE
+      vcenter_folder:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.vm_folder_name_nsx_infrastructure }}'
+        folder_type: vm
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+
+    - name: Create VM Folder - TENANT 01
+      vcenter_folder:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.vm_folder_name_tenant_01 }}'
+        folder_type: vm
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+    - name: Create VM Folder - TENANT 02
+      vcenter_folder:
+        validate_certs: no
+        hostname: '{{ vcenter.ip }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        datacenter_name: '{{ vcenter.datacenter_name }}'
+        folder_name: '{{ vcenter.vm_folder_name_tenant_02 }}'
+        folder_type: vm
+        state: present
+      register: vm_folder_creation_result
+      delegate_to: localhost
+
+

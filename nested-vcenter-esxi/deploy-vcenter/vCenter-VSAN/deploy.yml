@@ -1,0 +1,10 @@
+---
+- name: Wait 5 more minutes the vESXi hosts to become fully responsive
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ./answerfile.yml
+- import_playbook: playbooks/01-deployVC.yml
+- import_playbook: playbooks/02-basic-config-vcsa.yml
+- import_playbook: playbooks/03-add-hosts.yml
+- import_playbook: playbooks/04-storage.yml

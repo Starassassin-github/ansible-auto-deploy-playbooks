@@ -1,0 +1,8 @@
+---
+- name: Wait 5 more minutes the vESXi hosts to become fully responsive
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ./cfg_esxi.vars.yml
+- import_playbook: playbooks/vm_set_esxi.yml
+- import_playbook: playbooks/config_esxi.yml

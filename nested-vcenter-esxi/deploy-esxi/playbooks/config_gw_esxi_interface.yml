@@ -1,0 +1,29 @@
+---
+- name: Configure gateway vESX
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ../cfg_esxi.vars.yml
+  tasks:
+    - name: Set (- option name) ip addresses
+      vmware_vm_shell:
+        hostname: '{{ vcenter.vcenter_hostname }}'
+        username: '{{ vcenter.vcenter_username }}'
+        password: '{{ vcenter.vcenter_password }}'
+        datacenter: '{{ vcenter.datacenter_name }}'
+        cluster: '{{ vcenter.cluster_name }}'
+        validate_certs: false
+        vm_id: "{{ item.key }}"
+        vm_username: "{{ esxi_shell.username }}"
+        vm_password: "{{ esxi_shell.password }}"
+        vm_shell: /bin/esxcli
+        vm_shell_args: "network ip interface ipv4 set --interface-name=vmk0 --ipv4={{ item.value.ip }} --netmask={{ item.value.mask }} --gateway={{ item.value.gw }} --type=static"
+        # vm_shell_args: "network ip interface ipv4 set --ipv4={{ item.value.ip }} --netmask={{ item.value.mask }} --type=static"
+        vm_shell_env: 
+        - "PATH=/bin"
+        - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ vESX1 }}"
+      async: 7200
+      poll: 0
+      register: hip

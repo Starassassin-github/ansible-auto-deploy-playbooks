@@ -1,0 +1,67 @@
+# This is example for answer file
+
+vcenter: 
+  vcenter_hostname: 10.10.10.10
+  vcenter_username: administrator@vsphere.local
+  vcenter_password: p@ssworD11
+  cluster_name: Development
+  datacenter_name: Datacenter
+  datastore: vsanDatastore
+
+vm:  
+  conf_size: 100
+  conf_type: thin
+  conf_datastore: vsanDatastore
+  conf_memory: 12288
+  conf_num_cpus: 4
+  conf_scsi: paravirtual
+  conf_folder: ""
+  conf_networks_name: "VL100-MGMT"
+  conf_networks_type: "vmxnet3"
+  conf_hotadd_cpu: false
+  conf_hotremove_cpu: false
+  conf_iommu: false
+  conf_nested_virt: true
+  conf_boot_firmware: "efi"
+  conf_secure_boot: false
+  conf_guest_id: "vmkernel65Guest"
+  conf_cdrom_iso_paht_autounattend: "[yourDatastore] ISO/esxi_custom_unattended.iso"
+
+vESX1:
+  esxi01-test-ansible:
+    ip: 10.10.10.111
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Compute
+    vmotion_ip: 192.168.100.101
+    vsan_ip: 192.168.200.101
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+  esxi02-test-ansible:
+    ip: 10.10.10.112
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Compute
+    vmotion_ip: 192.168.100.102
+    vsan_ip: 192.168.200.102
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+  esxi03-test-ansible:
+    ip: 10.10.10.113
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Compute
+    vmotion_ip: 192.168.100.103
+    vsan_ip: 192.168.200.103
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+    
+esxi_shell:
+  username: root
+  password: P@ssw0rdd121

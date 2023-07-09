@@ -1,0 +1,149 @@
+---
+- hosts: localhost
+  name: vm_ubuntu20server2_playbook.yml
+  vars_files:
+    - cfg_ubuntu20.yml
+  gather_facts: false
+  tasks:
+    - name: Create working directory on Ansible Controller
+      ansible.builtin.file:
+        path: "{{ Global.Workingdir }}"
+        state: directory
+        mode: "755"
+
+
+    - name: Check if Ubuntu ISO exists locally on Ansible Controller
+      ansible.builtin.stat:
+        path: "{{ Global.Workingdir }}/{{ Global.UbuntuISO }}"
+      register: installerfilecheck
+
+
+    - name: Download Ubuntu ISO if ISO file doesn't exist locally
+      ansible.builtin.get_url:
+        url: "{{ Global.UbuntuISO_URL }}{{ Global.UbuntuISO }}"
+        dest: "{{ Global.Workingdir }}/{{ Global.UbuntuISO }}"
+        mode: "755"
+      when:
+        - not installerfilecheck.stat.exists
+
+
+    - name: Extract Ubuntu ISO
+      ansible.builtin.command: "xorriso -osirrox on -indev {{ Global.Workingdir }}/{{ Global.UbuntuISO }} \
+                               -extract / {{ Global.Workingdir }}/ISO"
+      changed_when: false
+
+
+    - name: Add write permission to extracted files
+      ansible.builtin.command: "chmod -R +w {{ Global.Workingdir }}/ISO"    # Using chmod as Ansible (Python) can't handle the directory structure depth on the Ubuntu ISO
+      changed_when: false
+
+
+## Start workaround issue with Ubuntu autoinstall
+## Details of the issue and the workaround: https://askubuntu.com/questions/1394441/ubuntu-20-04-3-autoinstall-with-embedded-user-data-crashing-i-got-workaround
+
+    - name: Extract the Packages.gz file on Ubuntu ISO
+      ansible.builtin.command: "gunzip -f {{ Global.Workingdir }}/ISO/dists/focal/main/binary-amd64/Packages.gz --keep"
+      changed_when: false
+
+## End workaround issue with Ubuntu autoinstall
+
+
+    - name: Copy txt.cfg file(s) from Ubuntu ISO
+      ansible.builtin.copy:
+        src: "{{ Global.Workingdir }}/ISO/isolinux/txt.cfg"
+        dest: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}/isolinux/"
+        mode: "775"
+      loop: "{{ VMsToDeploy }}"
+
+
+
+    - name: Edit txt.cfg to modify append line
+      ansible.builtin.replace:
+        dest: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}/isolinux/txt.cfg"
+        regexp: 'append   initrd=/casper/initrd quiet  ---'
+        replace: 'append   initrd=/casper/initrd quiet --- autoinstall ds=nocloud;s=/cdrom/autoinstall/'
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Create directory to store user-data and meta-data
+      ansible.builtin.file:
+        path: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}/autoinstall"
+        state: directory
+        mode: "755"
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Copy user-data file(s) to directory
+      ansible.builtin.template:
+        src: ./Ubuntu_user-data.j2
+        dest: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}/autoinstall/user-data"
+        mode: "755"
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Create empty meta-data file(s)
+      ansible.builtin.file:
+        path: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}/autoinstall/meta-data"
+        state: touch
+        mode: "755"
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Create custom Ubuntu ISO(s)
+      ansible.builtin.command: "xorrisofs -relaxed-filenames -J -R -o {{ Global.Workingdir }}/{{ item.Name }}.iso \
+                               -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
+                               {{ Global.Workingdir }}/ISO/ {{ Global.Workingdir }}/ISOcopy/{{ item.Name }}"
+      args:
+        chdir: "{{ Global.Workingdir }}/ISOcopy/{{ item.Name }}"
+      changed_when: false
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Upload the custom Ubuntu ISO(s) to the vSphere datastore
+      community.vmware.vsphere_copy:
+        hostname: "{{ vCenter.FQDN }}"
+        username: "{{ vCenter.User }}"
+        password: "{{ vCenter.Password }}"
+        validate_certs: false
+        datacenter: "{{ Global.ISODatacenter }}"
+        src: "{{ Global.Workingdir }}/{{ item.Name }}.iso"
+        datastore: "{{ Global.ISODatastore }}"
+        path: "{{ Global.ISODatastoreDir }}/{{ item.Name }}.iso"
+      loop: "{{ VMsToDeploy }}"
+
+
+    - name: Deploy Ubuntu VM(s)
+      community.vmware.vmware_guest:
+        hostname: "{{ vCenter.FQDN }}"
+        username: "{{ vCenter.User }}"
+        password: "{{ vCenter.Password }}"
+        validate_certs: false
+        name: "{{ item.Name }}"
+        state: "{{ item.Configuration.VM.PowerState }}"
+        guest_id: "{{ item.Configuration.VM.GuestID }}"
+        datacenter: "{{ item.Placement.Datacenter }}"
+        cluster: "{{ item.Placement.Cluster }}"
+        folder: "{{ item.Placement.Folder }}"
+        disk:
+          - size_gb: "{{ item.Configuration.Storage.DiskSize }}"
+            type: "{{ item.Configuration.Storage.DiskType }}"
+            datastore: "{{ item.Placement.Datastore }}"
+        hardware:
+          memory_mb: "{{ item.Configuration.Compute.MemorySize }}"
+          num_cpus: "{{ item.Configuration.Compute.CPUs }}"
+          num_cpu_cores_per_socket: "{{ item.Configuration.Compute.Cores }}"
+          scsi: "{{ item.Configuration.Storage.SCSIController }}"
+        networks:
+          - name: "{{ item.Configuration.Network.Portgroup }}"
+            device_type: "{{ item.Configuration.Network.NetworkAdapter }}"
+        cdrom:
+          - controller_number: 0
+            unit_number: 0
+            type: iso
+            iso_path: "[{{ Global.ISODatastore }}] {{ Global.ISODatastoreDir }}/{{ item.Name }}.iso"
+            state: present
+        annotation: |
+                    *** Auto-Deployed by Ansible ***
+                    Username: {{ item.Configuration.OS.User }}
+                    Password: {{ item.Configuration.OS.Password }}
+      loop: "{{ VMsToDeploy }}"

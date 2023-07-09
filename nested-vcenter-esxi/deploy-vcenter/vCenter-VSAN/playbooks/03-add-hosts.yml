@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  name: Add Hosts and licenses to vCenter 
+  gather_facts: false
+  vars_files: ../answerfile.yml
+
+  tasks:
+    
+    - name: Add ESXi Host to VCSA
+      vmware_host:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: "{{ vcenter.datacenter }}"
+        validate_certs: false
+        cluster_name: "{{ item.value.cluster }}"
+        esxi_hostname: "{{ item.value.ip }}"
+        esxi_username: "root"
+        esxi_password: "P@ssuu0rd1"   # you can see this password in KS.CFG file so you can custom password
+        state: present
+      with_dict: "{{ vESX1 }}"
+
+
+    - name: Add a new vCenter license - vCenter
+      vcenter_license:
+        validate_certs: no
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        license: '{{ vcenter7_license }}'
+        state: present
+      delegate_to: localhost
+
+    - name: Add ESXi license and assign to the ESXi host
+      vcenter_license:
+        validate_certs: no
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.user }}"
+        password: "{{ vcenter.password }}"
+        esxi_hostname: '{{ physicalESX.host }}'
+        license: '{{ vsphere7_license }}'
+        state: present
+      delegate_to: localhost
+
+

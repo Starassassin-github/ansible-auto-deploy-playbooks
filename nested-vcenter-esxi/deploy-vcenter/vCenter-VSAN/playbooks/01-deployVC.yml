@@ -1,0 +1,33 @@
+---
+- name: Deploy VC
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - ../answerfile.yml
+  tasks:
+    - name: Mount VC installer
+      action: mount name='/mnt/VCSA' src="{{ vcIso }}" opts=loop fstype=iso9660 state=mounted
+      tags: mount
+    - name: Create JSON template file for VCSA 6.7 with embeded PSC
+      template: 
+        src=../templates/VCSA_VSAN.json
+        dest=/tmp/VCSA_VSAN.json
+      when: 
+        - vcenter.ip  ==  vcenter.psc_ip
+
+    - debug:
+        msg: "Next step will take about 20 minutes if VC has not been previously deployed, so go grab some coffee !!!"
+
+    - name: Perform VC CLI Install
+      command: "./vcsa-deploy install --accept-eula --no-ssl-certificate-verification --acknowledge-ceip /tmp/VCSA_VSAN.json"
+      args:
+        chdir: /mnt/VCSA/vcsa-cli-installer/lin64/
+#      when: vcIso | search("-6.7.")
+      register: vc67deploy
+      ignore_errors: True
+
+    - name: Unmount VCSA installer
+      action: mount name='/mnt/VCSA' src="{{ vcIso }}" fstype=iso9660 state=absent
+
+    - name: Delete the temporary JSON template file
+      file: path=/tmp/VCSA_VSAN.json state=absent

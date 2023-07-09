@@ -1,0 +1,62 @@
+---
+- hosts: localhost
+  name: Add Hosts and licenses to vCenter 
+  gather_facts: false
+  vars_files: ../answerfile.yml
+
+  tasks:
+    
+    # if you have nfs data store
+    - name: Mount NFS datastores to ESXi - 01
+      vmware_host_datastore:
+          validate_certs: no
+          hostname: "{{ vcenter.ip }}"
+          username: "{{ vcenter.user }}"
+          password: "{{ vcenter.password }}"
+          datastore_name: '{{ item.name }}'
+          datastore_type: '{{ item.type }}'
+          nfs_server: '{{ item.server }}'
+          nfs_path: '{{ item.path }}'
+          nfs_ro: no
+          esxi_hostname: '{{ vESX1.esxi01-test-ansible.ip }}'
+          state: present
+      delegate_to: localhost
+      loop:
+          - { 'name': 'Synology-NFS-Datastore', 'server': '192.168.10.201', 'path': '/volume1/NFS', 'type': 'nfs'}
+
+    # if you have nfs data store
+    - name: Mount NFS datastores to ESXi - 02
+      vmware_host_datastore:
+          validate_certs: no
+          hostname: "{{ vcenter.ip }}"
+          username: "{{ vcenter.user }}"
+          password: "{{ vcenter.password }}"
+          datastore_name: '{{ item.name }}'
+          datastore_type: '{{ item.type }}'
+          nfs_server: '{{ item.server }}'
+          nfs_path: '{{ item.path }}'
+          nfs_ro: no
+          esxi_hostname: '{{ vESX1.esxi02-test-ansible.ip }}'
+          state: present
+      delegate_to: localhost
+      loop:
+          - { 'name': 'Synology-NFS-Datastore', 'server': '192.168.10.201', 'path': '/volume1/NFS', 'type': 'nfs'}
+
+    # if you have nfs data store
+    - name: Mount NFS datastores to ESXi - 03
+      vmware_host_datastore:
+          validate_certs: no
+          hostname: "{{ vcenter.ip }}"
+          username: "{{ vcenter.user }}"
+          password: "{{ vcenter.password }}"
+          datastore_name: '{{ item.name }}'
+          datastore_type: '{{ item.type }}'
+          nfs_server: '{{ item.server }}'
+          nfs_path: '{{ item.path }}'
+          nfs_ro: no
+          esxi_hostname: '{{ vESX1.esxi03-test-ansible.ip }}'
+          state: present
+      delegate_to: localhost
+      loop:
+          - { 'name': 'Synology-NFS-Datastore', 'server': '192.168.10.201', 'path': '/volume1/NFS', 'type': 'nfs'}
+

@@ -1,0 +1,98 @@
+# This is example for answer file
+physicalESX:
+  host: '10.10.10.11'
+  user: 'root' 
+  password: 'P@ssuu0rd1' 
+  vswitch: vSwitch0
+  canonical_name_cache: 'mpx.vmhba0:C0:T1:L0'   #This not dynamic support yet
+  canonical_name_capacity: 'mpx.vmhba0:C0:T2:L0' #This not dynamic support yet
+
+
+vcenter: 
+  ip: '10.10.10.20'
+  name: 'vCenter'
+  cluster_name: 'Development'
+  cluster_name_edge: 'Management-Edge'
+  datacenter_name: 'Datacenter'
+  datastore: 'vsanDatastore'
+  network: 'VM Network'
+  size: 'tiny'
+  mask: '24'
+  gw: '10.10.10.1'
+  password: 'P@ssuuorD1'
+  domain: 'vsphere.local'
+  psc_name: 'vsphere.local.com'
+  psc_ip: '192.168.6.108'
+  thin: 'true'
+  user: 'administrator@vsphere.local.com' 
+  host_folder_name_edge: 'ATX-01-EDGE'
+  host_folder_name_compute: 'ATX-01-COMPUTE'
+  vm_folder_name_infrastructure: 'DC-INFRASTRUCTURE'
+  vm_folder_name_nsx_infrastructure: 'NSX-INFRASTRUCTURE'
+  vm_folder_name_tenant_01: 'COMPUTE-TENANT-01'
+  vm_folder_name_tenant_02: 'COMPUTE-TENANT-02'
+
+dns1: '192.168.8.11'
+dns2: '8.8.8.8'
+ntp_server: '192.168.8.11'
+vcenter7_license: 'xxxxxxxxxxxxxxx'
+
+vm:  
+  conf_size: 100
+  conf_type: thin
+  conf_datastore: vsanDatastore
+  conf_memory: 12288
+  conf_num_cpus: 4
+  conf_scsi: paravirtual
+  conf_folder: ""
+  conf_networks_name: "VL700-MGMT"
+  conf_networks_type: "vmxnet3"
+  conf_hotadd_cpu: false
+  conf_hotremove_cpu: false
+  conf_iommu: false
+  conf_nested_virt: true
+  conf_boot_firmware: "efi"
+  conf_secure_boot: false
+  conf_guest_id: "vmkernel65Guest"
+
+vESX1:
+  esxi01-test-ansible:
+    ip: 10.10.10.111
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Development
+    vmotion_ip: 192.168.100.101
+    vsan_ip: 192.168.200.101
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+  esxi02-test-ansible:
+    ip: 10.10.10.112
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Development
+    vmotion_ip: 192.168.100.102
+    vsan_ip: 192.168.200.102
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+  esxi03-test-ansible:
+    ip: 10.10.10.113
+    mask: 255.255.255.0
+    gw: 10.10.10.1
+    mng_cluster: 'Management' 
+    cluster: Development
+    vmotion_ip: 192.168.100.103
+    vsan_ip: 192.168.200.103
+    pri_dns_server: 10.10.10.70
+    vswitch_name: 'vSwitch0'
+    vm_portgroup_name: 'VM Network'
+    
+esxi_shell:
+  username: root
+  password: P@ssw0rdd121
+    
+
+
